@@ -38,9 +38,10 @@ public class PMove : MonoBehaviour
         else if (rightIn) dir = dirs.r;
         else dir = dirs.n;
 
+        float angle = transform.rotation.eulerAngles.z * Mathf.Deg2Rad;
+
         //If forwards
         if (dir == dirs.f) {
-            float angle = transform.rotation.eulerAngles.z * Mathf.Deg2Rad;
             rb.velocity += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Time.fixedDeltaTime * acc;
         }
         //If nothing
@@ -49,7 +50,7 @@ public class PMove : MonoBehaviour
         else rotVel += rotAcc * Time.fixedDeltaTime * ((dir == dirs.l) ? 1 : -1);
 
         //Physics
-        rb.velocity += new Vector2(0, -gravity * Time.fixedDeltaTime * ((dir == dirs.f) ? 0 : 1));
+        rb.velocity += new Vector2(0, -gravity * Time.fixedDeltaTime * ((dir == dirs.f) ? (Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2)) : 1));
         rb.velocity *= Mathf.Pow(drag * ((dir == dirs.f) ? 0.01f : 1), Time.fixedDeltaTime);
 
         //Rotation physics
@@ -58,6 +59,6 @@ public class PMove : MonoBehaviour
         rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), Time.fixedDeltaTime);
 
 
-        print(transform.rotation.z);
+        print(Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2));
     }
 }
