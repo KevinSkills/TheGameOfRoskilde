@@ -51,7 +51,7 @@ public class PMove : MonoBehaviour
 
         //Physics
         rb.velocity += new Vector2(0, -gravity * Time.fixedDeltaTime * ((dir == dirs.f) ? (Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2)) : 1));
-        rb.velocity *= Mathf.Pow(drag * ((dir == dirs.f) ? 0.01f : 1), Time.fixedDeltaTime);
+        rb.velocity *= Mathf.Pow(drag, Time.fixedDeltaTime);
 
         //Rotation physics
         transform.Rotate(0, 0, rotVel);
