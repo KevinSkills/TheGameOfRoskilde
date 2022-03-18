@@ -23,6 +23,8 @@ public class PMove : MonoBehaviour
     public Rigidbody2D rb;
     public GameObject bullet;
 
+    public KeyCode leftButton, rightButton;
+
     
 
     enum dirs {
@@ -39,8 +41,8 @@ public class PMove : MonoBehaviour
 
         //Input collection
         bool leftIn, rightIn;
-        leftIn = Input.GetKey(KeyCode.LeftArrow);
-        rightIn = Input.GetKey(KeyCode.RightArrow);
+        leftIn = Input.GetKey(leftButton);
+        rightIn = Input.GetKey(rightButton);
 
         //Input processing
         if (leftIn && rightIn) dir = dirs.f;
@@ -69,8 +71,7 @@ public class PMove : MonoBehaviour
         rb.velocity *= Mathf.Pow(drag, Time.fixedDeltaTime);
 
         //Rotation physics
-        transform.Rotate(0, 0, rotVel);
-        
+        if (!Input.GetKey(KeyCode.Space)) transform.Rotate(0, 0, rotVel);
         rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), Time.fixedDeltaTime);
 
 
@@ -80,7 +81,8 @@ public class PMove : MonoBehaviour
         while (true) {
             print("ahhhs");
             if (isShooting) {
-                Instantiate(bullet, transform.position + new Vector3(0, 0, 1) + transform.right / 2, transform.rotation);
+                GameObject b = Instantiate(bullet, transform.position + new Vector3(0, 0, 1) + transform.right / 2, transform.rotation);
+                b.GetComponent<Bullet>().origin = gameObject;
             }
             yield return new WaitForSeconds(1 / attackSpeed);
         }
