@@ -123,36 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &374667752
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 374667753}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &374667753
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 374667752}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &412203400 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6916902058209035846, guid: ff7ff7a0447e5994aacb9aaa00c8ebe8, type: 3}
@@ -476,6 +446,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4614180650404535269, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 4614180650404535270, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: m_Color.b
       value: 1
@@ -560,6 +534,10 @@ PrefabInstance:
     - target: {fileID: 4614180650404535269, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: m_Name
       value: Player (0)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4614180650404535269, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4614180650404535271, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: left

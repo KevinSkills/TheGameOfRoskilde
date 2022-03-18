@@ -157,7 +157,7 @@ GameObject:
   - component: {fileID: 5990849623374171736}
   - component: {fileID: 653474849901881593}
   m_Layer: 7
-  m_Name: PlayerCollisionCol
+  m_Name: PlayerBouncer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
