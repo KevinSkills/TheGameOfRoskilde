@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 
 public class Database : MonoBehaviour
@@ -8,6 +9,7 @@ public class Database : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        
         StartCoroutine(register());
     }
 
@@ -20,21 +22,25 @@ public class Database : MonoBehaviour
 
     IEnumerator register() {
         WWWForm form = new WWWForm();
-        form.AddField("username", "Quang");
-        form.AddField("password", "Quang1234");
+        form.AddField("username", "john");
+        form.AddField("password", "weeb");
 
-        WWW www = new WWW("http://localhost/register.php", form);
+        UnityWebRequest uwr = UnityWebRequest.Post("http://localhost/register.php", form);
+        
+        
 
         
 
-        yield return www;
 
-        if(www.text.Equals("0"))
+        yield return uwr.SendWebRequest();
+        string dataText = uwr.downloadHandler.text;
+
+        if (dataText.Equals("0"))
         {
             print("hej");
         }else
         {
-            print("ERROR: " + www.text);
+            print("ERROR: " + dataText);
         }
 
     
