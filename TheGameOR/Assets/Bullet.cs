@@ -15,6 +15,7 @@ public class Bullet : MonoBehaviour
     void Start() {
         transform.Rotate(0, 0, Random.Range(-spreadAngle, spreadAngle));
         rb.velocity = transform.right * vel;
+        Destroy(gameObject, 10);
     }
 
     private void OnTriggerEnter2D(Collider2D collision) {
