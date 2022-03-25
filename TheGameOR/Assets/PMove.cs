@@ -5,12 +5,17 @@ using UnityEngine;
 public class PMove : MonoBehaviour
 {
 
+
     public float gravity;
     public float drag;
     public float rotDrag;
     public float rotDragMP;
 
     public float acc;
+    public float lerpTargetAcc;
+    float _acc;
+
+    public float accLerpUp, accLerpDown;
     public float rotAcc;
 
     public float attackSpeed;
@@ -32,11 +37,13 @@ public class PMove : MonoBehaviour
     }
 
     private void Start() {
+        _acc = acc;
         StartCoroutine(Shoot());
     }
 
     void FixedUpdate()
     {
+
         isShooting = false;
 
         //Input collection
@@ -54,17 +61,25 @@ public class PMove : MonoBehaviour
 
         //If forwards
         if (dir == dirs.f) {
-            rb.velocity += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Time.fixedDeltaTime * acc;
+            print(_acc.ToString());
+            _acc = Mathf.Lerp(_acc, lerpTargetAcc, accLerpDown);
+            rb.velocity += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Time.fixedDeltaTime * _acc;
         }
-        //If nothing
-        else if (dir == dirs.n) {
-            isShooting = true;
-        }
-        //If turning
+
+        //If not forwards
         else {
-            isShooting = true;
-            rotVel += rotAcc * Time.fixedDeltaTime * ((dir == dirs.l) ? 1 : -1);
+            _acc = Mathf.Lerp(_acc, acc, accLerpUp);
+            //If nothing
+            if (dir == dirs.n) {
+                isShooting = true;
+            }
+            //If turning
+            else {
+                isShooting = true;
+                rotVel += rotAcc * Time.fixedDeltaTime * ((dir == dirs.l) ? 1 : -1);
+            }
         }
+
 
         //Physics
         rb.velocity += new Vector2(0, -gravity * Time.fixedDeltaTime * ((dir == dirs.f) ? (Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2)) : 1));

@@ -98,11 +98,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 185781816ff0f6448bf5db4484efc112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gravity: 7
-  drag: 0.7
+  gravity: 3.5
+  drag: 0.9
   rotDrag: 0.05
   rotDragMP: 0.03
-  acc: 7
+  acc: 29
+  lerpTargetAcc: 7
+  accLerpUp: 0.15
+  accLerpDown: 0.15
   rotAcc: 30
   attackSpeed: 10
   rb: {fileID: 4614180650404535268}
