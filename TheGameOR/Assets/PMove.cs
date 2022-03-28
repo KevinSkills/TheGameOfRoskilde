@@ -15,7 +15,7 @@ public class PMove : MonoBehaviour
     public float lerpTargetAcc;
     float _acc;
 
-    public float accLerpUp, accLerpDown;
+    public float accLerpUp, accLerpDown, accLerpDownDirChance;
     public float rotAcc;
 
     public float attackSpeed;
@@ -61,8 +61,8 @@ public class PMove : MonoBehaviour
 
         //If forwards
         if (dir == dirs.f) {
-            print(_acc.ToString());
-            _acc = Mathf.Lerp(_acc, lerpTargetAcc, accLerpDown);
+            bool changingDir = (Vector2.Angle(transform.right, rb.velocity) > 90);
+            _acc = Mathf.Lerp(_acc, lerpTargetAcc, (changingDir) ? accLerpDownDirChance : accLerpDown);
             rb.velocity += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Time.fixedDeltaTime * _acc;
         }
 
@@ -89,12 +89,10 @@ public class PMove : MonoBehaviour
         if (!Input.GetKey(KeyCode.Space)) transform.Rotate(0, 0, rotVel);
         rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), Time.fixedDeltaTime);
 
-
     }
 
     IEnumerator Shoot () {
         while (true) {
-            print("ahhhs");
             if (isShooting) {
                 GameObject b = Instantiate(bullet, transform.position + new Vector3(0, 0, 1) + transform.right / 2, transform.rotation);
                 b.GetComponent<Bullet>().origin = gameObject;
