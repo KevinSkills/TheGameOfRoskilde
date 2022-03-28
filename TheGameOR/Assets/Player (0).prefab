@@ -103,9 +103,10 @@ MonoBehaviour:
   rotDrag: 0.05
   rotDragMP: 0.03
   acc: 29
-  lerpTargetAcc: 7
+  lerpTargetAcc: 4
   accLerpUp: 0.15
-  accLerpDown: 0.15
+  accLerpDown: 0.12
+  accLerpDownDirChance: 0
   rotAcc: 30
   attackSpeed: 10
   rb: {fileID: 4614180650404535268}
