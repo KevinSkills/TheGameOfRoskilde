@@ -19,32 +19,28 @@ public class PMove : MonoBehaviour
     public float rotAcc;
 
     public float attackSpeed;
-    bool isShooting;
     
     float rotVel;
 
     dirs dir;
 
     public Rigidbody2D rb;
-    public GameObject bullet;
+    public Shooter shooter;
 
     public KeyCode leftButton, rightButton;
 
     
 
-    enum dirs {
+    public enum dirs {
         f, l, r, n //forwards, left, right, no direction
     }
 
     private void Start() {
         _acc = acc;
-        StartCoroutine(Shoot());
     }
 
     void FixedUpdate()
     {
-
-        isShooting = false;
 
         //Input collection
         bool leftIn, rightIn;
@@ -71,11 +67,9 @@ public class PMove : MonoBehaviour
             _acc = Mathf.Lerp(_acc, acc, accLerpUp);
             //If nothing
             if (dir == dirs.n) {
-                isShooting = true;
             }
             //If turning
             else {
-                isShooting = true;
                 rotVel += rotAcc * Time.fixedDeltaTime * ((dir == dirs.l) ? 1 : -1);
             }
         }
@@ -89,15 +83,7 @@ public class PMove : MonoBehaviour
         if (!Input.GetKey(KeyCode.Space)) transform.Rotate(0, 0, rotVel);
         rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), Time.fixedDeltaTime);
 
-    }
-
-    IEnumerator Shoot () {
-        while (true) {
-            if (isShooting) {
-                GameObject b = Instantiate(bullet, transform.position + new Vector3(0, 0, 1) + transform.right / 2, transform.rotation);
-                b.GetComponent<Bullet>().origin = gameObject;
-            }
-            yield return new WaitForSeconds(1 / attackSpeed);
-        }
+        //Shooting
+        shooter.Updater(dir);
     }
 }

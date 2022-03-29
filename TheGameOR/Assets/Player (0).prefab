@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4614180650404535271}
   - component: {fileID: 4614180650404535268}
   - component: {fileID: 4614180650404535272}
+  - component: {fileID: -8216374161888504747}
   m_Layer: 6
   m_Name: Player (0)
   m_TagString: Player
@@ -110,7 +111,7 @@ MonoBehaviour:
   rotAcc: 30
   attackSpeed: 10
   rb: {fileID: 4614180650404535268}
-  bullet: {fileID: 4617214999123111063, guid: f722e73574b5d0f42a936575c4a049ad, type: 3}
+  shooter: {fileID: -8216374161888504747}
   leftButton: 0
   rightButton: 0
 --- !u!50 &4614180650404535268
@@ -150,6 +151,20 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &-8216374161888504747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4614180650404535269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84738cae693f723478382f41768d0d6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bullet: {fileID: 4617214999123111063, guid: f722e73574b5d0f42a936575c4a049ad, type: 3}
+  currentGun: 1
 --- !u!1 &8329876949752756117
 GameObject:
   m_ObjectHideFlags: 0
