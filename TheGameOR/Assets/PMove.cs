@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class PMove : MonoBehaviour
 {
-
-
     public float gravity;
     public float drag;
     public float rotDrag;

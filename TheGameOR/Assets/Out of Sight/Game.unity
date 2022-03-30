@@ -751,6 +751,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8216374161888504747, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: index
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8216374161888504747, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: currentGun
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4614180650404535268, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: m_Constraints
       value: 4
@@ -782,6 +790,10 @@ PrefabInstance:
     - target: {fileID: 4614180650404535271, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: left
       value: 276
+      objectReference: {fileID: 0}
+    - target: {fileID: 4614180650404535271, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: index
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4614180650404535271, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: right
@@ -838,6 +850,14 @@ PrefabInstance:
     - target: {fileID: 4614180650404535273, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 8329876949752756117, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8329876949752756117, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: m_TagString
+      value: PlayerCol
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
@@ -986,6 +1006,10 @@ PrefabInstance:
     - target: {fileID: 4614180650404535273, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8329876949752756117, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
+      propertyPath: m_TagString
+      value: PlayerCol
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7a4a4754aadf5164582bebeef2022f57, type: 3}
