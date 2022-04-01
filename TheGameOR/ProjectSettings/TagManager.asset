@@ -3,19 +3,21 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Bullet
+  - PlayerCol
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Terrain
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - PlayerCollision0
+  - PlayerCollision1
+  - Bullet0
+  - Bullet1
   - 
   - 
   - 
