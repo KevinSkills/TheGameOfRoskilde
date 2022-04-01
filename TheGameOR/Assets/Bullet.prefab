@@ -102,6 +102,7 @@ MonoBehaviour:
   spreadAngle: 5
   rb: {fileID: -1115538726395232549}
   origin: {fileID: 0}
+  attractionStrength: 0
 --- !u!50 &-1115538726395232549
 Rigidbody2D:
   serializedVersion: 4
@@ -114,7 +115,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 0.01
+  m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
