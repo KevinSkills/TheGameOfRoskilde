@@ -54,5 +54,6 @@ public class GM : MonoBehaviour
         player0.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         player1.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
     }
+
 }
 
