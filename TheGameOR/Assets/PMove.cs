@@ -52,12 +52,12 @@ public class PMove : NetworkBehaviour
             GetInputs();
         }
 
-        Physics(Time.fixedDeltaTime);
+        Physics();
 
         if (hasAuthority) cmdSendMoveData(dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); //maybe not every frame?
 
         else {
-            transform.position = Vector3.Lerp(transform.position, estimatedPosition, 0.8f);
+            transform.position = Vector3.Lerp(transform.position, estimatedPosition, 1f);
         }
 
         //Shooting
@@ -65,36 +65,36 @@ public class PMove : NetworkBehaviour
     }
 
     //This doesn't work consistently for different deltatimes
-    private void Physics(float deltaTime) {
+    private void Physics() {
         //If forwards
         if (dir == dirs.f) {
             bool changingDir = (Vector2.Angle(transform.right, rb.velocity) > 90);
 
             
-            _acc = Mathf.Lerp(_acc, lerpTargetAcc, 1 - Mathf.Pow(1 - ((changingDir) ? accLerpDownDirChange : accLerpDown), 50 * deltaTime));
-            rb.velocity += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * deltaTime * _acc;
+            _acc = Mathf.Lerp(_acc, lerpTargetAcc, 1 - Mathf.Pow(1 - ((changingDir) ? accLerpDownDirChange : accLerpDown), 50 * Time.fixedDeltaTime));
+            rb.velocity += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Time.fixedDeltaTime * _acc;
         }
 
         //If not forwards
         else {
-            _acc = Mathf.Lerp(_acc, acc, 1 - Mathf.Pow(1 - accLerpUp, 50 * deltaTime));
+            _acc = Mathf.Lerp(_acc, acc, 1 - Mathf.Pow(1 - accLerpUp, 50 * Time.fixedDeltaTime));
             //If nothing
             if (dir == dirs.n) {
             }
             //If turning
             else {
-                rotVel += rotAcc * deltaTime * ((dir == dirs.l) ? 1 : -1);
+                rotVel += rotAcc * Time.fixedDeltaTime * ((dir == dirs.l) ? 1 : -1);
             }
         }
 
         //Update velocities
-        rb.velocity += new Vector2(0, -gravity * deltaTime * ((dir == dirs.f) ? (Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2)) : 1));
-        rb.velocity *= Mathf.Pow(drag, deltaTime);
+        rb.velocity += new Vector2(0, -gravity * Time.fixedDeltaTime * ((dir == dirs.f) ? (Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2)) : 1));
+        rb.velocity *= Mathf.Pow(drag, Time.fixedDeltaTime);
         rb.velocity = HandleWallCollisions(estimatedPosition, rb.velocity, transform.localScale.x / 2);
 
         //Update rotational velocities
         if (!Input.GetKey(KeyCode.Space)) transform.Rotate(0, 0, rotVel);
-        rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), deltaTime);
+        rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), Time.fixedDeltaTime);
 
         if (hasAuthority) estimatedPosition = transform.position;
         else estimatedPosition += rb.velocity;
@@ -142,7 +142,11 @@ public class PMove : NetworkBehaviour
         rotVel = rotationalVelocity;
         _acc = variableAccelaration;
 
-        Physics((float)NetworkTime.rtt / 2);
+        float timeToArrive = (float)NetworkTime.rtt / 2;
+        while (timeToArrive > Time.fixedDeltaTime) {
+            timeToArrive -= Time.fixedDeltaTime;
+            Physics();
+        }
 
         rpcSendMoveData(dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); ;
     }
@@ -159,6 +163,10 @@ public class PMove : NetworkBehaviour
         rotVel = rotationalVelocity;
         _acc = variableAccelaration;
 
-        Physics((float)NetworkTime.rtt / 2);
+        float timeToArrive = (float)NetworkTime.rtt / 2;
+        while (timeToArrive > Time.fixedDeltaTime) {
+            timeToArrive -= Time.fixedDeltaTime;
+            Physics();
+        }
     }
 }
