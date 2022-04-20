@@ -57,6 +57,7 @@ public class PMove : NetworkBehaviour
         if (hasAuthority) cmdSendMoveData(dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); //maybe not every frame?
 
         else {
+            rb.bodyType = RigidbodyType2D.Static;
             transform.position = Vector3.Lerp(transform.position, estimatedPosition, 1f);
         }
 
