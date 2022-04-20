@@ -7,8 +7,9 @@ public class GM : MonoBehaviour
 {
 
     public GameObject redWin, blueWin;
-    public GameObject player0, player1;
-    public Vector3 pos0, pos1;
+    public List<GameObject> players;
+    public List<Vector3> positions;
+    public List<float> rotations;
     public Quaternion rot0, rot1;
     public Text text0, text1;
     public static GM instance;
@@ -22,11 +23,6 @@ public class GM : MonoBehaviour
     {
         instance = this;
 
-        pos0 = player0.transform.position;
-        pos1 = player1.transform.position;
-        rot0 = player0.transform.rotation;
-        rot1 = player1.transform.rotation;
-
         resetGame(-1);
     }
 
@@ -39,8 +35,14 @@ public class GM : MonoBehaviour
         else if (hp1 < 1) resetGame(0);
     }
 
+    public void SetPlayer(GameObject player) {
+        players.Add(player);
+        positions.Add(player.transform.position);
+        rotations.Add(player.transform.rotation.eulerAngles.z);
+    }
+
     public void damage(GameObject player) {
-        if (player == player0) hp0--;
+        if (player == players[0]) hp0--;
         else hp1--;
     }
 
@@ -49,10 +51,11 @@ public class GM : MonoBehaviour
         Bullet.destroyAllBullets();
         hp0 = 15;
         hp1 = hp0;
-        player0.transform.SetPositionAndRotation(pos0, rot0);
-        player1.transform.SetPositionAndRotation(pos1, rot1);
-        player0.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-        player1.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+
+        for (int i = 0; i < players.Count; i++) {
+            players[i].transform.SetPositionAndRotation(positions[i], Quaternion.Euler(0, 0, rotations[i]));
+            players[i].GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        }
     }
 
 }

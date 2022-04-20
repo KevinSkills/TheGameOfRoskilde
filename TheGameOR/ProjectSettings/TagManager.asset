@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Bullet
   - PlayerCol
+  - PlayerConnection
   layers:
   - Default
   - TransparentFX
@@ -13,9 +14,9 @@ TagManager:
   - Terrain
   - Water
   - UI
-  - Player
-  - PlayerCollision0
-  - PlayerCollision1
+  - Player0
+  - Player1
+  - 
   - Bullet0
   - Bullet1
   - 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Shooter : MonoBehaviour
 {
-    public int index;
+    public PCon connection;
 
     public GameObject bullet;
 
@@ -43,7 +43,7 @@ public class Shooter : MonoBehaviour
         if (dir != PMove.dirs.f && releaseTime > 0.2f) return;
         if (dir == PMove.dirs.f) releaseTime = Mathf.Min(0, releaseTime - Time.fixedDeltaTime);
 
-        float firerate = 10, speed = 10, spread = 8, lifetime = 10, bulletMass = 0.00001f, velFromPlayer = 0.3f;
+        float firerate = 10, speed = 10, spread = 8, lifetime = 5, bulletMass = 0.00001f, velFromPlayer = 0.3f;
         
         if (lastGun != currentGun) ammoTime = 1 / firerate; //shoot immediately
 
@@ -78,7 +78,7 @@ public class Shooter : MonoBehaviour
         for (int i = 0; i < amount; i++) {
             Bullet b = Instantiate(bullet, transform.position + new Vector3(0, 0, 1) + transform.right / 2, transform.rotation).GetComponent<Bullet>();
             b.origin = gameObject;
-            b.gameObject.layer = 9 + index; //Bullet0 is 9, Bullet1 is 10
+            b.gameObject.layer = 9 + connection.pIndex; //Bullet0 is 9, Bullet1 is 10
 
             b.transform.Rotate(0, 0, Random.Range(-spread, spread));
 
