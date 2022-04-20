@@ -7,6 +7,7 @@ using Mirror;
 public class PMove : NetworkBehaviour
 {
 
+    [SyncVar]
     public PCon connection;
 
     public float gravity;
@@ -53,14 +54,17 @@ public class PMove : NetworkBehaviour
 
         Physics(Time.fixedDeltaTime);
 
-        if (hasAuthority) cmdSendMoveData(); //maybe not every frame?
+        if (hasAuthority) cmdSendMoveData(dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); //maybe not every frame?
 
-        
+        else {
+            transform.position = Vector3.Lerp(transform.position, estimatedPosition, 0.8f);
+        }
 
         //Shooting
         //shooter.Updater(dir);
     }
 
+    //This doesn't work consistently for different deltatimes
     private void Physics(float deltaTime) {
         //If forwards
         if (dir == dirs.f) {
@@ -84,13 +88,13 @@ public class PMove : NetworkBehaviour
         }
 
         //Update velocities
-        rb.velocity += new Vector2(0, -gravity * Time.deltaTime * ((dir == dirs.f) ? (Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2)) : 1));
-        rb.velocity *= Mathf.Pow(drag, Time.deltaTime);
-        rb.velocity = HandleWallCollisions(transform.position, rb.velocity, transform.localScale.x / 2);
+        rb.velocity += new Vector2(0, -gravity * deltaTime * ((dir == dirs.f) ? (Mathf.Sqrt((1 + Mathf.Cos(angle + Mathf.PI / 2)) / 2)) : 1));
+        rb.velocity *= Mathf.Pow(drag, deltaTime);
+        rb.velocity = HandleWallCollisions(estimatedPosition, rb.velocity, transform.localScale.x / 2);
 
         //Update rotational velocities
         if (!Input.GetKey(KeyCode.Space)) transform.Rotate(0, 0, rotVel);
-        rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), Time.deltaTime);
+        rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), deltaTime);
 
         if (hasAuthority) estimatedPosition = transform.position;
         else estimatedPosition += rb.velocity;
@@ -128,7 +132,33 @@ public class PMove : NetworkBehaviour
         return vel;
     }
 
-    public void cmdSendMoveData() {
+    [Command]
+    public void cmdSendMoveData(dirs direction, Vector2 position, Vector2 velocity, float zRotation, float rotationalVelocity, float variableAccelaration) {
+        //Maybe check if the movement is valid?
+        dir = direction;
+        transform.position = position;
+        rb.velocity = velocity;
+        transform.rotation = Quaternion.Euler(0, 0, zRotation);
+        rotVel = rotationalVelocity;
+        _acc = variableAccelaration;
 
+        Physics((float)NetworkTime.rtt / 2);
+
+        rpcSendMoveData(dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); ;
+    }
+
+    [ClientRpc]
+    public void rpcSendMoveData(dirs direction, Vector2 position, Vector2 velocity, float zRotation, float rotationalVelocity, float variableAccelaration) {
+
+        if (hasAuthority) return; //we already have the best data, so we don't care about what the server tells us;
+
+        dir = direction;
+        estimatedPosition = position; //only set the estimated position to avoid jumps in the actual position
+        rb.velocity = velocity;
+        transform.rotation = Quaternion.Euler(0, 0, zRotation);
+        rotVel = rotationalVelocity;
+        _acc = variableAccelaration;
+
+        Physics((float)NetworkTime.rtt / 2);
     }
 }

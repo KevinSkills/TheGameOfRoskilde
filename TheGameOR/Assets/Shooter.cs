@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
-public class Shooter : MonoBehaviour
+public class Shooter : NetworkBehaviour
 {
+
+    [SyncVar]
     public PCon connection;
 
     public GameObject bullet;

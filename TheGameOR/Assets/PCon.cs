@@ -5,15 +5,17 @@ using Mirror;
 
 public class PCon : NetworkBehaviour {
 
+
     public int pIndex;
 
     public GameObject playerPrefab;
 
-    GameObject myUnit;
+    
 
     // Start is called before the first frame update
     void Start() {
         if (!isLocalPlayer) return;
+        
         pIndex = GameObject.FindGameObjectsWithTag("PlayerConnection").Length - 1;
         cmdSpawnMyPlayer();
     }
@@ -21,11 +23,16 @@ public class PCon : NetworkBehaviour {
     [Command]
     void cmdSpawnMyPlayer() {
 
-        myUnit = Instantiate(playerPrefab, transform.position, transform.rotation);
+        GameObject myUnit = Instantiate(playerPrefab, transform.position, transform.rotation);
+
         myUnit.GetComponent<PMove>().connection = this;
         myUnit.GetComponent<Shooter>().connection = this;
 
-        NetworkServer.Spawn(myUnit);
-        myUnit.GetComponent<NetworkIdentity>().AssignClientAuthority(connectionToClient);
+        
+        
+
+        NetworkServer.Spawn(myUnit, connectionToClient);
+
+       
     }
 }
