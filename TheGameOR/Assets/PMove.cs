@@ -143,7 +143,7 @@ public class PMove : NetworkBehaviour
 
     [ClientRpc]
     public void rpcSendMoveData(float rtt, dirs direction, Vector2 position, Vector2 velocity, float zRotation, float rotationalVelocity, float variableAccelaration) {
-        if (isServer) return;
+        
         if (hasAuthority) return; //we already have the best data, so we don't care about what the server tells us;
 
         dir = direction;
