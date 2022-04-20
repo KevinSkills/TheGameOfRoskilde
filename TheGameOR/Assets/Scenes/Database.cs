@@ -22,10 +22,11 @@ public class Database : MonoBehaviour
 
     IEnumerator register() {
         WWWForm form = new WWWForm();
-        form.AddField("username", "john");
-        form.AddField("password", "weeb");
+        form.AddField("port", "john");
+        form.AddField("ip", "123");
+        form.AddField("playerID", "121223");
 
-        UnityWebRequest uwr = UnityWebRequest.Post("http://localhost/register.php", form);
+        UnityWebRequest uwr = UnityWebRequest.Post("https://thegameor.000webhostapp.com/get.php", form);
         
         
 
