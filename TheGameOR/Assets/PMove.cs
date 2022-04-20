@@ -51,15 +51,16 @@ public class PMove : NetworkBehaviour
         if (hasAuthority) {
             GetInputs();
         }
+        else {
+            //rb.bodyType = RigidbodyType2D.Static;
+            transform.position = Vector3.Lerp(transform.position, estimatedPosition, 1);
+        }
 
         Physics();
 
-        if (hasAuthority) cmdSendMoveData(dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); //maybe not every frame?
+        if (hasAuthority) cmdSendMoveData((float)NetworkTime.rtt, dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); //maybe not every frame?
 
-        else {
-            rb.bodyType = RigidbodyType2D.Static;
-            transform.position = Vector3.Lerp(transform.position, estimatedPosition, 1f);
-        }
+        
 
         //Shooting
         //shooter.Updater(dir);
@@ -98,7 +99,7 @@ public class PMove : NetworkBehaviour
         rotVel *= Mathf.Pow(rotDrag * ((dir == dirs.f || dir == dirs.n) ? rotDragMP : 1), Time.fixedDeltaTime);
 
         if (hasAuthority) estimatedPosition = transform.position;
-        else estimatedPosition += rb.velocity;
+        else estimatedPosition += rb.velocity * Time.fixedDeltaTime;
     }
 
     public void GetInputs() {
@@ -130,31 +131,19 @@ public class PMove : NetworkBehaviour
         if (inputPosition.x < Camera.main.aspect * -Camera.main.orthographicSize + radius && inputVelocity.x < 0) { //Left Side
             vel = new Vector2(-vel.x * wallBounciness + wallPushForceSide, vel.y);
         }
+        if (vel != inputVelocity) print("bounce");
         return vel;
     }
 
     [Command]
-    public void cmdSendMoveData(dirs direction, Vector2 position, Vector2 velocity, float zRotation, float rotationalVelocity, float variableAccelaration) {
-        //Maybe check if the movement is valid?
-        dir = direction;
-        transform.position = position;
-        rb.velocity = velocity;
-        transform.rotation = Quaternion.Euler(0, 0, zRotation);
-        rotVel = rotationalVelocity;
-        _acc = variableAccelaration;
+    public void cmdSendMoveData(float rtt, dirs direction, Vector2 position, Vector2 velocity, float zRotation, float rotationalVelocity, float variableAccelaration) {
 
-        float timeToArrive = (float)NetworkTime.rtt / 2;
-        while (timeToArrive > Time.fixedDeltaTime) {
-            timeToArrive -= Time.fixedDeltaTime;
-            Physics();
-        }
-
-        rpcSendMoveData(dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); ;
+        rpcSendMoveData(rtt, direction, position, velocity, zRotation, rotationalVelocity, variableAccelaration); ;
     }
 
     [ClientRpc]
-    public void rpcSendMoveData(dirs direction, Vector2 position, Vector2 velocity, float zRotation, float rotationalVelocity, float variableAccelaration) {
-
+    public void rpcSendMoveData(float rtt, dirs direction, Vector2 position, Vector2 velocity, float zRotation, float rotationalVelocity, float variableAccelaration) {
+        if (isServer) return;
         if (hasAuthority) return; //we already have the best data, so we don't care about what the server tells us;
 
         dir = direction;
@@ -164,7 +153,7 @@ public class PMove : NetworkBehaviour
         rotVel = rotationalVelocity;
         _acc = variableAccelaration;
 
-        float timeToArrive = (float)NetworkTime.rtt / 2;
+        float timeToArrive = (float)NetworkTime.rtt / 2 + rtt/2;
         while (timeToArrive > Time.fixedDeltaTime) {
             timeToArrive -= Time.fixedDeltaTime;
             Physics();
