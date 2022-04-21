@@ -5,7 +5,6 @@ using Mirror;
 
 public class PCon : NetworkBehaviour {
 
-
     public int pIndex;
 
     public GameObject playerPrefab;
@@ -17,19 +16,23 @@ public class PCon : NetworkBehaviour {
         if (!isLocalPlayer) return;
         
         pIndex = GameObject.FindGameObjectsWithTag("PlayerConnection").Length - 1;
-        cmdSpawnMyPlayer();
+        cmdSpawnMyPlayer(pIndex);
     }
 
     [Command]
-    void cmdSpawnMyPlayer() {
+    void cmdSpawnMyPlayer(int index) {
 
         GameObject myUnit = Instantiate(playerPrefab, transform.position, transform.rotation);
 
         myUnit.GetComponent<PMove>().connection = this;
         myUnit.GetComponent<Shooter>().connection = this;
 
-        
-        
+        if (index == 1) myUnit.GetComponent<PMove>().color = new Color32((byte)1,   (byte)206, (byte)255, (byte)255);
+                   else myUnit.GetComponent<PMove>().color = new Color32((byte)254, (byte)49,  (byte)0,   (byte)255);
+
+
+
+
 
         NetworkServer.Spawn(myUnit, connectionToClient);
 

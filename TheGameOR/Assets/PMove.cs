@@ -10,6 +10,9 @@ public class PMove : NetworkBehaviour
     [SyncVar]
     public PCon connection;
 
+    [SyncVar]
+    public Color color;
+
     public float gravity;
     public float drag;
     public float rotDrag;
@@ -43,7 +46,9 @@ public class PMove : NetworkBehaviour
     }
 
     private void Start() {
+        GetComponent<SpriteRenderer>().color = color;
         _acc = acc;
+        if (hasAuthority) StartCoroutine("SendMoveData");
     }
 
     void FixedUpdate()
@@ -57,10 +62,6 @@ public class PMove : NetworkBehaviour
         }
 
         Physics();
-
-        if (hasAuthority) cmdSendMoveData((float)NetworkTime.rtt, dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc); //maybe not every frame?
-
-        
 
         //Shooting
         //shooter.Updater(dir);
@@ -105,8 +106,8 @@ public class PMove : NetworkBehaviour
     public void GetInputs() {
         //Input collection
         bool leftIn, rightIn;
-        leftIn = Input.GetButton("Left" + connection.pIndex);
-        rightIn = Input.GetButton("Right" + connection.pIndex);
+        leftIn = Input.GetButton("Left"); //use +connection.pIndex if you want different controls for the 2 players. Since we are online, we want the same
+        rightIn = Input.GetButton("Right");
 
         //Input processing
         if (leftIn && rightIn) dir = dirs.f;
@@ -115,6 +116,13 @@ public class PMove : NetworkBehaviour
         else dir = dirs.n;
 
         angle = transform.rotation.eulerAngles.z * Mathf.Deg2Rad;
+    }
+
+    IEnumerator SendMoveData() {
+        while (true) {
+            cmdSendMoveData((float)NetworkTime.rtt, dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc);
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 
     public Vector3 HandleWallCollisions(Vector2 inputPosition, Vector2 inputVelocity, float radius) {

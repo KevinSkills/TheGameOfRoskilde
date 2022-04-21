@@ -46,21 +46,21 @@ public class Shooter : NetworkBehaviour
         if (dir != PMove.dirs.f && releaseTime > 0.2f) return;
         if (dir == PMove.dirs.f) releaseTime = Mathf.Min(0, releaseTime - Time.fixedDeltaTime);
 
-        float firerate = 10, speed = 10, spread = 8, lifetime = 5, bulletMass = 0.00001f, velFromPlayer = 0.3f;
+        float firerate = 10, speed = 10, spread = 8, lifetime = 5, velFromPlayer = 0.3f;
         
         if (lastGun != currentGun) ammoTime = 1 / firerate; //shoot immediately
 
         ammoTime += Time.fixedDeltaTime;
         while (ammoTime > 1 / firerate) {
             ammoTime -= 1 / firerate;
-            SpawnBullets(1, speed, spread, lifetime, bulletMass, velFromPlayer);
+            SpawnBullets(1, speed, spread, lifetime, velFromPlayer);
         }
     }
 
     float shotgunCharge;
     void ShootShotgun(PMove.dirs dir) {
         float bulletsPerCharge = 5, maxcharge = 2.5f, speed = 15, spread = 17,
-            lifetime = 0.3f, bulletMass = 0.15f, knockback = 5, velFromPlayer = 0.5f;
+            lifetime = 0.3f, knockback = 5, velFromPlayer = 0.5f;
 
 
         if (lastGun != currentGun) shotgunCharge = 0;
@@ -68,7 +68,7 @@ public class Shooter : NetworkBehaviour
         if (dir == PMove.dirs.n) {
             if (lastDir != PMove.dirs.n) {
                 GetComponent<Rigidbody2D>().velocity -= (Vector2)transform.right * knockback * Mathf.Sqrt(shotgunCharge);
-                SpawnBullets((int) (shotgunCharge * bulletsPerCharge), speed, spread, lifetime, bulletMass, velFromPlayer);
+                SpawnBullets((int) (shotgunCharge * bulletsPerCharge), speed, spread, lifetime, velFromPlayer);
             }
             shotgunCharge = 0;
         }
@@ -77,7 +77,7 @@ public class Shooter : NetworkBehaviour
         }
     }
 
-    void SpawnBullets(int amount, float speed, float spread, float lifetime, float bulletMass, float velFromPlayer) {
+    void SpawnBullets(int amount, float speed, float spread, float lifetime, float velFromPlayer) {
         for (int i = 0; i < amount; i++) {
             Bullet b = Instantiate(bullet, transform.position + new Vector3(0, 0, 1) + transform.right / 2, transform.rotation).GetComponent<Bullet>();
             b.origin = gameObject;
@@ -86,7 +86,6 @@ public class Shooter : NetworkBehaviour
             b.transform.Rotate(0, 0, Random.Range(-spread, spread));
 
             Rigidbody2D bRB = b.GetComponent<Rigidbody2D>();
-            bRB.mass = bulletMass;
             bRB.velocity = (Vector2) b.transform.right * speed + GetComponent<Rigidbody2D>().velocity * velFromPlayer;
 
             Destroy(b.gameObject, lifetime);

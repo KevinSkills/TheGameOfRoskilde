@@ -12,7 +12,7 @@ public class Bullet : MonoBehaviour
     void Start() {
     }
 
-    private void OnCollisionEnter2D(Collision2D collision) {
+    private void OnTriggerEnter2D(Collider2D collision) {
         if (collision.gameObject.tag == "Player") {
             if (collision.gameObject == origin) return;
             GM.instance.damage(collision.gameObject);
