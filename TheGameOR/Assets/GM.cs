@@ -2,19 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Mirror;
 
-public class GM : MonoBehaviour
+public class GM : NetworkBehaviour
 {
 
     public GameObject redWin, blueWin;
+
+    [SyncVar]
     public List<GameObject> players;
+    [SyncVar]
     public List<Vector3> positions;
+    [SyncVar]
     public List<float> rotations;
+
     public Quaternion rot0, rot1;
     public Text text0, text1;
     public static GM instance;
 
-    static int hp0, hp1;
+    [SyncVar]
+    int hp0, hp1;
 
 
 
@@ -22,8 +29,6 @@ public class GM : MonoBehaviour
     void Start()
     {
         instance = this;
-
-        resetGame(-1);
     }
 
     // Update is called once per frame
@@ -48,7 +53,7 @@ public class GM : MonoBehaviour
 
     private void resetGame(int indexWin) {
         if (indexWin >= 0) Instantiate((indexWin == 0) ? redWin : blueWin);
-        Bullet.destroyAllBullets();
+        Bullet.resetAllBullets();
         hp0 = 15;
         hp1 = hp0;
 
@@ -57,6 +62,5 @@ public class GM : MonoBehaviour
             players[i].GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         }
     }
-
 }
 

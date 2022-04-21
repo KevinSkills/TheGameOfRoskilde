@@ -53,19 +53,16 @@ public class PMove : NetworkBehaviour
         timer = Time.time;
         GetComponent<SpriteRenderer>().color = color;
         _acc = acc;
-        //if (hasAuthority) StartCoroutine("SendMoveData");
-        tester = GameObject.Find("tester");
     }
 
     void FixedUpdate()
     {
-        if (!hasAuthority) tester.transform.position = new Vector2(5, _acc/10);
-
         if (hasAuthority) {
+            //Shooting
+            shooter.Updater(dir);
             GetInputs();
         }
         else {
-            //rb.bodyType = RigidbodyType2D.Static;
             transform.position = Vector3.Lerp(transform.position, estimatedPosition, 0.1f);
         }
 
@@ -76,8 +73,7 @@ public class PMove : NetworkBehaviour
             cmdSendMoveData((float)NetworkTime.rtt, dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc);
         }
 
-        //Shooting
-        //shooter.Updater(dir);
+        
     }
 
     //This doesn't work consistently for different deltatimes
