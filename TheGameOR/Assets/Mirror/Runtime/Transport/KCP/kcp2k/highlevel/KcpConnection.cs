@@ -10,25 +10,20 @@ namespace kcp2k
     public abstract class KcpConnection
     {
         protected Socket socket;
-        protected EndPoint remoteEndpoint;
+        protected EndPoint remoteEndPoint;
         internal Kcp kcp;
 
         // kcp can have several different states, let's use a state machine
         KcpState state = KcpState.Disconnected;
 
         public Action OnAuthenticated;
-        public Action<ArraySegment<byte>> OnData;
+        public Action<ArraySegment<byte>, KcpChannel> OnData;
         public Action OnDisconnected;
-
-        // Mirror needs a way to stop the kcp message processing while loop
-        // immediately after a scene change message. Mirror can't process any
-        // other messages during a scene change.
-        // (could be useful for others too)
-        bool paused;
 
         // If we don't receive anything these many milliseconds
         // then consider us disconnected
-        public const int TIMEOUT = 10000;
+        public const int DEFAULT_TIMEOUT = 10000;
+        public int timeout = DEFAULT_TIMEOUT;
         uint lastReceiveTime;
 
         // internal time.
@@ -42,18 +37,36 @@ namespace kcp2k
         const int CHANNEL_HEADER_SIZE = 1;
 
         // reliable channel (= kcp) MaxMessageSize so the outside knows largest
-        // allowed message to send the calculation in Send() is not obvious at
+        // allowed message to send. the calculation in Send() is not obvious at
         // all, so let's provide the helper here.
         //
         // kcp does fragmentation, so max message is way larger than MTU.
         //
         // -> runtime MTU changes are disabled: mss is always MTU_DEF-OVERHEAD
-        // -> Send() checks if fragment count < WND_RCV, so we use WND_RCV - 1.
-        //    note that Send() checks WND_RCV instead of wnd_rcv which may or
-        //    may not be a bug in original kcp. but since it uses the define, we
-        //    can use that here too.
+        // -> Send() checks if fragment count < rcv_wnd, so we use rcv_wnd - 1.
+        //    NOTE that original kcp has a bug where WND_RCV default is used
+        //    instead of configured rcv_wnd, limiting max message size to 144 KB
+        //    https://github.com/skywind3000/kcp/pull/291
+        //    we fixed this in kcp2k.
         // -> we add 1 byte KcpHeader enum to each message, so -1
-        public const int ReliableMaxMessageSize = (Kcp.MTU_DEF - Kcp.OVERHEAD - CHANNEL_HEADER_SIZE) * (Kcp.WND_RCV - 1) - 1;
+        //
+        // IMPORTANT: max message is MTU * rcv_wnd, in other words it completely
+        //            fills the receive window! due to head of line blocking,
+        //            all other messages have to wait while a maxed size message
+        //            is being delivered.
+        //            => in other words, DO NOT use max size all the time like
+        //               for batching.
+        //            => sending UNRELIABLE max message size most of the time is
+        //               best for performance (use that one for batching!)
+        static int ReliableMaxMessageSize_Unconstrained(uint rcv_wnd) => (Kcp.MTU_DEF - Kcp.OVERHEAD - CHANNEL_HEADER_SIZE) * ((int)rcv_wnd - 1) - 1;
+
+        // kcp encodes 'frg' as 1 byte.
+        // max message size can only ever allow up to 255 fragments.
+        //   WND_RCV gives 127 fragments.
+        //   WND_RCV * 2 gives 255 fragments.
+        // so we can limit max message size by limiting rcv_wnd parameter.
+        public static int ReliableMaxMessageSize(uint rcv_wnd) =>
+            ReliableMaxMessageSize_Unconstrained(Math.Min(rcv_wnd, Kcp.FRG_MAX));
 
         // unreliable max message size is simply MTU - channel header size
         public const int UnreliableMaxMessageSize = Kcp.MTU_DEF - CHANNEL_HEADER_SIZE;
@@ -61,13 +74,13 @@ namespace kcp2k
         // buffer to receive kcp's processed messages (avoids allocations).
         // IMPORTANT: this is for KCP messages. so it needs to be of size:
         //            1 byte header + MaxMessageSize content
-        byte[] kcpMessageBuffer = new byte[1 + ReliableMaxMessageSize];
+        byte[] kcpMessageBuffer;// = new byte[1 + ReliableMaxMessageSize];
 
         // send buffer for handing user messages to kcp for processing.
         // (avoids allocations).
         // IMPORTANT: needs to be of size:
         //            1 byte header + MaxMessageSize content
-        byte[] kcpSendBuffer = new byte[1 + ReliableMaxMessageSize];
+        byte[] kcpSendBuffer;// = new byte[1 + ReliableMaxMessageSize];
 
         // raw send buffer is exactly MTU.
         byte[] rawSendBuffer = new byte[Kcp.MTU_DEF];
@@ -114,9 +127,11 @@ namespace kcp2k
         public uint MaxReceiveRate =>
             kcp.rcv_wnd * kcp.mtu * 1000 / kcp.interval;
 
-        // NoDelay, interval, window size are the most important configurations.
-        // let's force require the parameters so we don't forget it anywhere.
-        protected void SetupKcp(bool noDelay, uint interval = Kcp.INTERVAL, int fastResend = 0, bool congestionWindow = true, uint sendWindowSize = Kcp.WND_SND, uint receiveWindowSize = Kcp.WND_RCV)
+        // SetupKcp creates and configures a new KCP instance.
+        // => useful to start from a fresh state every time the client connects
+        // => NoDelay, interval, wnd size are the most important configurations.
+        //    let's force require the parameters so we don't forget it anywhere.
+        protected void SetupKcp(bool noDelay, uint interval = Kcp.INTERVAL, int fastResend = 0, bool congestionWindow = true, uint sendWindowSize = Kcp.WND_SND, uint receiveWindowSize = Kcp.WND_RCV, int timeout = DEFAULT_TIMEOUT, uint maxRetransmits = Kcp.DEADLINK)
         {
             // set up kcp over reliable channel (that's what kcp is for)
             kcp = new Kcp(0, RawSendReliable);
@@ -131,19 +146,27 @@ namespace kcp2k
             // message afterwards.
             kcp.SetMtu(Kcp.MTU_DEF - CHANNEL_HEADER_SIZE);
 
+            // set maximum retransmits (aka dead_link)
+            kcp.dead_link = maxRetransmits;
+
+            // create message buffers AFTER window size is set
+            // see comments on buffer definition for the "+1" part
+            kcpMessageBuffer = new byte[1 + ReliableMaxMessageSize(receiveWindowSize)];
+            kcpSendBuffer = new byte[1 + ReliableMaxMessageSize(receiveWindowSize)];
+
+            this.timeout = timeout;
             state = KcpState.Connected;
 
             refTime.Start();
-            Tick();
         }
 
         void HandleTimeout(uint time)
         {
             // note: we are also sending a ping regularly, so timeout should
             //       only ever happen if the connection is truly gone.
-            if (time >= lastReceiveTime + TIMEOUT)
+            if (time >= lastReceiveTime + timeout)
             {
-                Log.Warning($"KCP: Connection timed out after not receiving any message for {TIMEOUT}ms. Disconnecting.");
+                Log.Warning($"KCP: Connection timed out after not receiving any message for {timeout}ms. Disconnecting.");
                 Disconnect();
             }
         }
@@ -153,7 +176,7 @@ namespace kcp2k
             // kcp has 'dead_link' detection. might as well use it.
             if (kcp.state == -1)
             {
-                Log.Warning("KCP Connection dead_link detected. Disconnecting.");
+                Log.Warning($"KCP Connection dead_link detected: a message was retransmitted {kcp.dead_link} times without ack. Disconnecting.");
                 Disconnect();
             }
         }
@@ -232,19 +255,18 @@ namespace kcp2k
                 }
             }
 
+            message = default;
             header = KcpHeader.Disconnect;
             return false;
         }
 
-        void TickConnected(uint time)
+        void TickIncoming_Connected(uint time)
         {
             // detect common events & ping
             HandleTimeout(time);
             HandleDeadLink();
             HandlePing(time);
             HandleChoked();
-
-            kcp.Update(time);
 
             // any reliable kcp message received?
             if (ReceiveNextReliable(out KcpHeader header, out ArraySegment<byte> message))
@@ -278,7 +300,7 @@ namespace kcp2k
             }
         }
 
-        void TickAuthenticated(uint time)
+        void TickIncoming_Authenticated(uint time)
         {
             // detect common events & ping
             HandleTimeout(time);
@@ -286,22 +308,8 @@ namespace kcp2k
             HandlePing(time);
             HandleChoked();
 
-            kcp.Update(time);
-
             // process all received messages
-            //
-            // Mirror scene changing requires transports to immediately stop
-            // processing any more messages after a scene message was
-            // received. and since we are in a while loop here, we need this
-            // extra check.
-            //
-            // note while that this is mainly for Mirror, but might be
-            // useful in other applications too.
-            //
-            // note that we check it BEFORE ever calling ReceiveNext. otherwise
-            // we would silently eat the received message and never process it.
-            while (!paused &&
-                   ReceiveNextReliable(out KcpHeader header, out ArraySegment<byte> message))
+            while (ReceiveNextReliable(out KcpHeader header, out ArraySegment<byte> message))
             {
                 // message type FSM. no default so we never miss a case.
                 switch (header)
@@ -315,8 +323,18 @@ namespace kcp2k
                     }
                     case KcpHeader.Data:
                     {
-                        //Log.Warning($"Kcp recv msg: {BitConverter.ToString(message.Array, message.Offset, message.Count)}");
-                        OnData?.Invoke(message);
+                        // call OnData IF the message contained actual data
+                        if (message.Count > 0)
+                        {
+                            //Log.Warning($"Kcp recv msg: {BitConverter.ToString(message.Array, message.Offset, message.Count)}");
+                            OnData?.Invoke(message, KcpChannel.Reliable);
+                        }
+                        // empty data = attacker, or something went wrong
+                        else
+                        {
+                            Log.Warning("KCP: received empty Data message while Authenticated. Disconnecting the connection.");
+                            Disconnect();
+                        }
                         break;
                     }
                     case KcpHeader.Ping:
@@ -335,7 +353,7 @@ namespace kcp2k
             }
         }
 
-        public void Tick()
+        public void TickIncoming()
         {
             uint time = (uint)refTime.ElapsedMilliseconds;
 
@@ -345,12 +363,54 @@ namespace kcp2k
                 {
                     case KcpState.Connected:
                     {
-                        TickConnected(time);
+                        TickIncoming_Connected(time);
                         break;
                     }
                     case KcpState.Authenticated:
                     {
-                        TickAuthenticated(time);
+                        TickIncoming_Authenticated(time);
+                        break;
+                    }
+                    case KcpState.Disconnected:
+                    {
+                        // do nothing while disconnected
+                        break;
+                    }
+                }
+            }
+            catch (SocketException exception)
+            {
+                // this is ok, the connection was closed
+                Log.Info($"KCP Connection: Disconnecting because {exception}. This is fine.");
+                Disconnect();
+            }
+            catch (ObjectDisposedException exception)
+            {
+                // fine, socket was closed
+                Log.Info($"KCP Connection: Disconnecting because {exception}. This is fine.");
+                Disconnect();
+            }
+            catch (Exception ex)
+            {
+                // unexpected
+                Log.Error(ex.ToString());
+                Disconnect();
+            }
+        }
+
+        public void TickOutgoing()
+        {
+            uint time = (uint)refTime.ElapsedMilliseconds;
+
+            try
+            {
+                switch (state)
+                {
+                    case KcpState.Connected:
+                    case KcpState.Authenticated:
+                    {
+                        // update flushes out messages
+                        kcp.Update(time);
                         break;
                     }
                     case KcpState.Disconnected:
@@ -421,15 +481,8 @@ namespace kcp2k
                         //    the current state allows it.
                         if (state == KcpState.Authenticated)
                         {
-                            // only process messages while not paused for Mirror
-                            // scene switching etc.
-                            // -> if an unreliable message comes in while
-                            //    paused, simply drop it. it's unreliable!
-                            if (!paused)
-                            {
-                                ArraySegment<byte> message = new ArraySegment<byte>(buffer, 1, msgLength - 1);
-                                OnData?.Invoke(message);
-                            }
+                            ArraySegment<byte> message = new ArraySegment<byte>(buffer, 1, msgLength - 1);
+                            OnData?.Invoke(message, KcpChannel.Unreliable);
 
                             // set last receive time to avoid timeout.
                             // -> we do this in ANY case even if not enabled.
@@ -490,7 +543,7 @@ namespace kcp2k
                 }
             }
             // otherwise content is larger than MaxMessageSize. let user know!
-            else Log.Error($"Failed to send reliable message of size {content.Count} because it's larger than ReliableMaxMessageSize={ReliableMaxMessageSize}");
+            else Log.Error($"Failed to send reliable message of size {content.Count} because it's larger than ReliableMaxMessageSize={ReliableMaxMessageSize(kcp.rcv_wnd)}");
         }
 
         void SendUnreliable(ArraySegment<byte> message)
@@ -500,7 +553,7 @@ namespace kcp2k
             {
                 // copy channel header, data into raw send buffer, then send
                 rawSendBuffer[0] = (byte)KcpChannel.Unreliable;
-                Buffer.BlockCopy(message.Array, 0, rawSendBuffer, 1, message.Count);
+                Buffer.BlockCopy(message.Array, message.Offset, rawSendBuffer, 1, message.Count);
                 RawSend(rawSendBuffer, message.Count + 1);
             }
             // otherwise content is larger than MaxMessageSize. let user know!
@@ -521,6 +574,17 @@ namespace kcp2k
 
         public void SendData(ArraySegment<byte> data, KcpChannel channel)
         {
+            // sending empty segments is not allowed.
+            // nobody should ever try to send empty data.
+            // it means that something went wrong, e.g. in Mirror/DOTSNET.
+            // let's make it obvious so it's easy to debug.
+            if (data.Count == 0)
+            {
+                Log.Warning("KcpConnection: tried sending empty message. This should never happen. Disconnecting.");
+                Disconnect();
+                return;
+            }
+
             switch (channel)
             {
                 case KcpChannel.Reliable:
@@ -539,9 +603,7 @@ namespace kcp2k
         // disconnect info needs to be delivered, so it goes over reliable
         void SendDisconnect() => SendReliable(KcpHeader.Disconnect, default);
 
-        protected virtual void Dispose()
-        {
-        }
+        protected virtual void Dispose() {}
 
         // disconnect this connection
         public void Disconnect()
@@ -580,25 +642,6 @@ namespace kcp2k
         }
 
         // get remote endpoint
-        public EndPoint GetRemoteEndPoint() => remoteEndpoint;
-
-        // pause/unpause to safely support mirror scene handling and to
-        // immediately pause the receive while loop if needed.
-        public void Pause() => paused = true;
-        public void Unpause()
-        {
-            // unpause
-            paused = false;
-
-            // reset the timeout.
-            // we have likely been paused for > timeout seconds, but that
-            // doesn't mean we should disconnect. for example, Mirror pauses
-            // kcp during scene changes which could easily take > 10s timeout:
-            //   see also: https://github.com/vis2k/kcp2k/issues/8
-            // => Unpause completely resets the timeout instead of restoring the
-            //    time difference when we started pausing. it's more simple and
-            //    it's a good idea to start counting from 0 after we unpaused!
-            lastReceiveTime = (uint)refTime.ElapsedMilliseconds;
-        }
+        public EndPoint GetRemoteEndPoint() => remoteEndPoint;
     }
 }

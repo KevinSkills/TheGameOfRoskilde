@@ -32,7 +32,6 @@ namespace Mirror.SimpleWeb
             this.onDispose = onDispose;
         }
 
-
         /// <summary>
         /// disposes client and stops threads
         /// </summary>
@@ -52,7 +51,7 @@ namespace Mirror.SimpleWeb
                 if (hasDisposed) { return; }
                 hasDisposed = true;
 
-                // stop threads first so they dont try to use disposed objects
+                // stop threads first so they don't try to use disposed objects
                 receiveThread.Interrupt();
                 sendThread?.Interrupt();
 
@@ -83,8 +82,15 @@ namespace Mirror.SimpleWeb
 
         public override string ToString()
         {
-            System.Net.EndPoint endpoint = client?.Client?.RemoteEndPoint;
-            return $"[Conn:{connId}, endPoint:{endpoint}]";
+            if (hasDisposed)
+            {
+                return $"[Conn:{connId}, Disposed]";
+            }
+            else
+            {
+                System.Net.EndPoint endpoint = client?.Client?.RemoteEndPoint;
+                return $"[Conn:{connId}, endPoint:{endpoint}]";
+            }
         }
     }
 }

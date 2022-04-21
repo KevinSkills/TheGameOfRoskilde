@@ -13,6 +13,8 @@ public class PMove : NetworkBehaviour
     [SyncVar]
     public Color color;
 
+    public GameObject tester;
+
     public float gravity;
     public float drag;
     public float rotDrag;
@@ -41,27 +43,38 @@ public class PMove : NetworkBehaviour
 
     float angle;
 
+    float timer;
+
     public enum dirs {
         f, l, r, n //forwards, left, right, no direction
     }
 
     private void Start() {
+        timer = Time.time;
         GetComponent<SpriteRenderer>().color = color;
         _acc = acc;
-        if (hasAuthority) StartCoroutine("SendMoveData");
+        //if (hasAuthority) StartCoroutine("SendMoveData");
+        tester = GameObject.Find("tester");
     }
 
     void FixedUpdate()
     {
+        if (!hasAuthority) tester.transform.position = new Vector2(5, _acc/10);
+
         if (hasAuthority) {
             GetInputs();
         }
         else {
             //rb.bodyType = RigidbodyType2D.Static;
-            transform.position = Vector3.Lerp(transform.position, estimatedPosition, 1);
+            transform.position = Vector3.Lerp(transform.position, estimatedPosition, 0.1f);
         }
 
         Physics();
+
+        if (hasAuthority && Time.time > timer + 0.1f) {
+            timer = Time.time;
+            cmdSendMoveData((float)NetworkTime.rtt, dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc);
+        }
 
         //Shooting
         //shooter.Updater(dir);
@@ -75,6 +88,7 @@ public class PMove : NetworkBehaviour
 
             
             _acc = Mathf.Lerp(_acc, lerpTargetAcc, 1 - Mathf.Pow(1 - ((changingDir) ? accLerpDownDirChange : accLerpDown), 50 * Time.fixedDeltaTime));
+            angle = transform.rotation.eulerAngles.z * Mathf.Deg2Rad;
             rb.velocity += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Time.fixedDeltaTime * _acc;
         }
 
@@ -114,16 +128,8 @@ public class PMove : NetworkBehaviour
         else if (leftIn) dir = dirs.l;
         else if (rightIn) dir = dirs.r;
         else dir = dirs.n;
-
-        angle = transform.rotation.eulerAngles.z * Mathf.Deg2Rad;
     }
 
-    IEnumerator SendMoveData() {
-        while (true) {
-            cmdSendMoveData((float)NetworkTime.rtt, dir, transform.position, rb.velocity, transform.rotation.eulerAngles.z, rotVel, _acc);
-            yield return new WaitForSeconds(0.1f);
-        }
-    }
 
     public Vector3 HandleWallCollisions(Vector2 inputPosition, Vector2 inputVelocity, float radius) {
         Vector2 vel = inputVelocity;

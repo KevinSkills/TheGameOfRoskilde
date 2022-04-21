@@ -103,6 +103,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   connection: {fileID: 0}
+  color: {r: 0, g: 0, b: 0, a: 0}
+  tester: {fileID: 0}
   gravity: 3.5
   drag: 0.9
   rotDrag: 0.05
@@ -187,7 +189,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 0
   serverOnly: 0
-  m_AssetId: 
+  visible: 0
+  m_AssetId: 7a4a4754aadf5164582bebeef2022f57
   hasSpawned: 0
 --- !u!114 &219633116764087183
 MonoBehaviour:
@@ -204,6 +207,22 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   clientAuthority: 1
-  localPositionSensitivity: 0.01
-  localRotationSensitivity: 0.01
-  localScaleSensitivity: 0.01
+  sendInterval: 0.05
+  syncPosition: 1
+  syncRotation: 1
+  syncScale: 0
+  interpolatePosition: 1
+  interpolateRotation: 1
+  interpolateScale: 0
+  bufferTimeMultiplier: 1
+  bufferSizeLimit: 64
+  catchupThreshold: 4
+  catchupMultiplier: 0.1
+  onlySyncOnChange: 1
+  bufferResetMultiplier: 5
+  positionSensitivity: 0.01
+  rotationSensitivity: 0.01
+  scaleSensitivity: 0.01
+  showGizmos: 0
+  showOverlay: 0
+  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
