@@ -71,9 +71,11 @@ public class ConnectToNoble : MonoBehaviour
 
             Debug.Log(dataText);
 
-            string[] splitData = dataText.Remove(0).Split(':'); //array with ip on 0 and port on 1
+            string[] splitData = dataText.Remove(0, 1).Split(':'); //array with ip on 0 and port on 1
 
-            startClient(splitData[0], ushort.Parse(splitData[0]));
+            print(splitData[0] + "    " + splitData[1]);
+
+            startClient(splitData[0], ushort.Parse(splitData[1]));
         }
         else
         {
