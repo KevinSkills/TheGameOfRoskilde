@@ -7,7 +7,7 @@ using NobleConnect.Mirror;
 using Mirror;
 using UnityEngine.Networking;
 
-public class ConnectToNoble : MonoBehaviour
+public class ConnectToNoble : MonoBehaviour 
 {
     
     NobleNetworkManager networkManager;
@@ -31,6 +31,7 @@ public class ConnectToNoble : MonoBehaviour
     {
         // Cast from Unity's NetworkManager to a NobleNetworkManager.
         networkManager = (NobleNetworkManager)NetworkManager.singleton;
+        print("hej");
     }
 
 
