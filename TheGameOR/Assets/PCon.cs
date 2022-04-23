@@ -49,8 +49,6 @@ public class PCon : NetworkBehaviour {
                    else myUnit.GetComponent<PMove>().color = new Color32((byte)254, (byte)49,  (byte)0,   (byte)255);
 
         NetworkServer.Spawn(myUnit, connectionToClient);
-
-        GM.instance.SetPlayer(myUnit);
     }
 
     [Command]

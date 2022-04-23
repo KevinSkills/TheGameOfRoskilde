@@ -7,7 +7,6 @@ using Mirror;
 public class PMove : NetworkBehaviour
 {
 
-
     [SyncVar]
     public PCon connection;
 
@@ -16,7 +15,7 @@ public class PMove : NetworkBehaviour
 
     public GameObject tester;
 
-    public Transform field;
+    Transform field;
 
     public float gravity;
     public float drag;
@@ -48,19 +47,29 @@ public class PMove : NetworkBehaviour
 
     float timer;
 
+    [HideInInspector]
+    public Vector2 startPos;
+    [HideInInspector]
+    public Quaternion startRot;
+
     public enum dirs {
         f, l, r, n //forwards, left, right, no direction
     }
 
     private void Start() {
+
+        field = GameObject.Find("Field").transform;
         timer = Time.time;
         GetComponent<SpriteRenderer>().color = color;
-        field = GameObject.Find("Field").transform;
         _acc = acc;
+        startPos = transform.position;
+        startRot = transform.rotation;
     }
 
     void FixedUpdate()
     {
+        if (!GM.instance.isReady) return;
+
         if (hasAuthority) {
             //Shooting
             shooter.Updater(dir);
@@ -123,9 +132,8 @@ public class PMove : NetworkBehaviour
         leftIn = Input.GetButton("Left"); //use +connection.pIndex if you want different controls for the 2 players. Since we are online, we want the same
         rightIn = Input.GetButton("Right");
 
-        foreach (Touch touch in Input.touches)
-        {
-            if (touch.position.x / Screen.width < 0.5) leftIn = true;
+        foreach (Touch t in Input.touches) {
+            if (t.position.x / Screen.width < 0.5f) leftIn = true;
             else rightIn = true;
         }
 
@@ -151,7 +159,6 @@ public class PMove : NetworkBehaviour
         if (inputPosition.x < -field.localScale.x / 2 + radius && inputVelocity.x < 0) { //Left Side
             vel = new Vector2(-vel.x * wallBounciness + wallPushForceSide, vel.y);
         }
-        if (vel != inputVelocity) print("bounce");
         return vel;
     }
 

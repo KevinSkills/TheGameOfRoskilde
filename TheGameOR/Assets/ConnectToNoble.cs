@@ -9,12 +9,13 @@ using UnityEngine.Networking;
 
 public class ConnectToNoble : MonoBehaviour 
 {
-    
-    NobleNetworkManager networkManager;
+
+    [HideInInspector]
+    public NobleNetworkManager networkManager;
 
 
 
-    public Text playerIDText;
+       
 
     public InputField manualInputHost;
 
@@ -24,16 +25,17 @@ public class ConnectToNoble : MonoBehaviour
 
     public static ConnectToNoble instance;
 
-    public GameObject registerPanel;
+    
 
-    public GameObject loadingPanel;
+
 
     public string ip, port;
 
     public static string playerID;
 
     // Used to determine which GUI to display
-    bool isHost, isClient;
+    [HideInInspector]
+    public bool isHost, isClient;
 
     bool connected;
 
@@ -48,7 +50,7 @@ public class ConnectToNoble : MonoBehaviour
     public void Start()
     {
 
-        playerIDText.text = playerID;
+        manualInputHost.text = "g";
         
         // Cast from Unity's NetworkManager to a NobleNetworkManager.
         networkManager = (NobleNetworkManager)NetworkManager.singleton;
@@ -117,8 +119,13 @@ public class ConnectToNoble : MonoBehaviour
     {
         string id;
         if (manualInputHost.text.Equals("")) id = playerID;
-        else id = manualInputHost.text;
+        else
+        {
+            print("vivp");
+            id = manualInputHost.text;
+        }
 
+        print("bool: " + manualInputHost.text);
 
         WWWForm form = new WWWForm();
         
@@ -170,12 +177,11 @@ public class ConnectToNoble : MonoBehaviour
 
     private void Update()
     {
-        playerIDText.text = playerID;
-        if (playerID.Equals("")) registerPanel.SetActive(true);
-        else registerPanel.SetActive(false);
+        
+        
 
         disconnectButton.SetActive(true);
-        loadingPanel.SetActive(true);
+        
         if (isHost)
         {
             //Host stuff
@@ -210,7 +216,7 @@ public class ConnectToNoble : MonoBehaviour
         else
         {
             disconnectButton.SetActive(false);
-            loadingPanel.SetActive(false);
+            
         }
 
 
@@ -256,13 +262,13 @@ public class ConnectToNoble : MonoBehaviour
         print("eh");
         PlayerPrefs.DeleteKey("playerID");
         playerID = "";
-        playerIDText.text = "None";
+        
     }
 
     public void setPlayerID(string pID)
     {
         playerID = pID;
         PlayerPrefs.SetString("playerID", pID);
-        playerIDText.text = pID;
+        
     }
 }

@@ -18,7 +18,7 @@ namespace distriqt.example.nfc
         public GameObject stateTextObject;
         public GameObject logTextObject;
 
-        public GameObject settingsPanel;
+        
 
 
 
@@ -128,11 +128,7 @@ namespace distriqt.example.nfc
         }
 
 
-        public void toggleSettingsPanel()
-        {
-            print("hej");
-            settingsPanel.SetActive(!settingsPanel.activeSelf);
-        }
+
         private void button1_OnClick()
         {
             Log("IsEnabled() = " + NFC.Instance.IsEnabled());
