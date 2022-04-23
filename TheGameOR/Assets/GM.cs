@@ -9,19 +9,14 @@ public class GM : NetworkBehaviour
 
     public GameObject redWin, blueWin;
 
-    [SyncVar]
-    public List<GameObject> players;
-    [SyncVar]
-    public List<Vector3> positions;
-    [SyncVar]
-    public List<float> rotations;
-
     public Quaternion rot0, rot1;
     public Text text0, text1;
     public static GM instance;
+    public bool isReady = false;
 
     [SyncVar]
-    int hp0, hp1;
+    int hp0 = 15, hp1 = 15;
+
 
 
 
@@ -29,37 +24,41 @@ public class GM : NetworkBehaviour
     void Start()
     {
         instance = this;
+
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (!isReady && GameObject.FindGameObjectsWithTag("Player").Length > 1) isReady = true;
+
         text0.text = hp0.ToString();
         text1.text = hp1.ToString();
-        if (hp0 < 1 ) resetGame(1);
-        else if (hp1 < 1) resetGame(0);
-    }
-
-    public void SetPlayer(GameObject player) {
-        players.Add(player);
-        positions.Add(player.transform.position);
-        rotations.Add(player.transform.rotation.eulerAngles.z);
+        if (!isServer) return;
+        if (hp0 < 1 ) rpcResetGame(1);
+        else if (hp1 < 1) rpcResetGame(0);
     }
 
     public void damage(GameObject player) {
-        if (player == players[0]) hp0--;
+        if (player.layer == 6) hp0--; //if it's on the player0 layer
         else hp1--;
     }
-
-    private void resetGame(int indexWin) {
+    
+    [ClientRpc]
+    private void rpcResetGame(int indexWin) {
         if (indexWin >= 0) Instantiate((indexWin == 0) ? redWin : blueWin);
         Bullet.resetAllBullets();
         hp0 = 15;
         hp1 = hp0;
 
-        for (int i = 0; i < players.Count; i++) {
-            players[i].transform.SetPositionAndRotation(positions[i], Quaternion.Euler(0, 0, rotations[i]));
-            players[i].GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        
+        foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player")) {
+            PMove pm = player.GetComponent<PMove>();
+            player.transform.position = pm.startPos;
+            player.transform.rotation = pm.startRot;
+            player.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+
         }
     }
 }

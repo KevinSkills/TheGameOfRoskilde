@@ -45,6 +45,11 @@ public class PMove : NetworkBehaviour
 
     float timer;
 
+    [HideInInspector]
+    public Vector2 startPos;
+    [HideInInspector]
+    public Quaternion startRot;
+
     public enum dirs {
         f, l, r, n //forwards, left, right, no direction
     }
@@ -53,10 +58,14 @@ public class PMove : NetworkBehaviour
         timer = Time.time;
         GetComponent<SpriteRenderer>().color = color;
         _acc = acc;
+        startPos = transform.position;
+        startRot = transform.rotation;
     }
 
     void FixedUpdate()
     {
+        if (!GM.instance.isReady) return;
+
         if (hasAuthority) {
             //Shooting
             shooter.Updater(dir);
@@ -141,7 +150,6 @@ public class PMove : NetworkBehaviour
         if (inputPosition.x < Camera.main.aspect * -Camera.main.orthographicSize + radius && inputVelocity.x < 0) { //Left Side
             vel = new Vector2(-vel.x * wallBounciness + wallPushForceSide, vel.y);
         }
-        if (vel != inputVelocity) print("bounce");
         return vel;
     }
 
