@@ -8,9 +8,21 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  - enabled: 1
+  - enabled: 0
+    path: Assets/Menu.unity
+    guid: 74af3a4014036d34ebf2c38d2500bec0
+  - enabled: 0
     path: Assets/Scenes/NobleMenu.unity
     guid: f777957cac7b0fd44978c30cbe1e841c
+  - enabled: 0
+    path: Assets/Scenes/Test.unity
+    guid: cb7a7f8bec075424d85f4d4b03c67499
+  - enabled: 1
+    path: Assets/Scenes/Menu.unity
+    guid: acb0768bcd8da914883e970bb3508edb
+  - enabled: 1
+    path: Assets/distriqt/NFCUnity/NFCExample/ExampleScene.unity
+    guid: e2649903628464f71803d150a59df304
   - enabled: 1
     path: Assets/Scenes/Game.unity
     guid: b35db81285390ca44af940e3146e1de6

@@ -7,6 +7,7 @@ using Mirror;
 public class PMove : NetworkBehaviour
 {
 
+
     [SyncVar]
     public PCon connection;
 
@@ -14,6 +15,8 @@ public class PMove : NetworkBehaviour
     public Color color;
 
     public GameObject tester;
+
+    public Transform field;
 
     public float gravity;
     public float drag;
@@ -52,6 +55,7 @@ public class PMove : NetworkBehaviour
     private void Start() {
         timer = Time.time;
         GetComponent<SpriteRenderer>().color = color;
+        field = GameObject.Find("Field").transform;
         _acc = acc;
     }
 
@@ -119,6 +123,12 @@ public class PMove : NetworkBehaviour
         leftIn = Input.GetButton("Left"); //use +connection.pIndex if you want different controls for the 2 players. Since we are online, we want the same
         rightIn = Input.GetButton("Right");
 
+        foreach (Touch touch in Input.touches)
+        {
+            if (touch.position.x / Screen.width < 0.5) leftIn = true;
+            else rightIn = true;
+        }
+
         //Input processing
         if (leftIn && rightIn) dir = dirs.f;
         else if (leftIn) dir = dirs.l;
@@ -129,16 +139,16 @@ public class PMove : NetworkBehaviour
 
     public Vector3 HandleWallCollisions(Vector2 inputPosition, Vector2 inputVelocity, float radius) {
         Vector2 vel = inputVelocity;
-        if (inputPosition.y > Camera.main.orthographicSize - radius && inputVelocity.y > 0) { //Ceiling
+        if (inputPosition.y > field.localScale.y/2 - radius && inputVelocity.y > 0) { //Ceiling
             vel = new Vector2(vel.x, -vel.y * wallBounciness - wallPushForceCeiling);
         }
-        if (inputPosition.y < -Camera.main.orthographicSize + radius && inputVelocity.y < 0) { //Floor
+        if (inputPosition.y < -field.localScale.y / 2 + radius && inputVelocity.y < 0) { //Floor
             vel = new Vector2(vel.x, -vel.y * wallBounciness + wallPushForceFloor);
         }
-        if (inputPosition.x > Camera.main.aspect * Camera.main.orthographicSize - radius && inputVelocity.x > 0) { //Right Side
+        if (inputPosition.x > field.localScale.x / 2 - radius && inputVelocity.x > 0) { //Right Side
             vel = new Vector2(-vel.x * wallBounciness - wallPushForceSide, vel.y);
         }
-        if (inputPosition.x < Camera.main.aspect * -Camera.main.orthographicSize + radius && inputVelocity.x < 0) { //Left Side
+        if (inputPosition.x < -field.localScale.x / 2 + radius && inputVelocity.x < 0) { //Left Side
             vel = new Vector2(-vel.x * wallBounciness + wallPushForceSide, vel.y);
         }
         if (vel != inputVelocity) print("bounce");

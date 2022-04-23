@@ -104,14 +104,16 @@ namespace distriqt.example.nfc
                         string id = record.payload;
                         Log("  record.payload: " + id);
 
-                        if (!DDL.playerID.Equals("") && !DDL.playerID.Equals(id)) //if not empty, and it is not own id
+                        if (!ConnectToNoble.playerID.Equals("") && !ConnectToNoble.playerID.Equals(id)) //if not empty, and it is not own id
                         {
                             
                             ConnectToNoble.instance.startClient(id);
                         }
                         else
                         {
-                            DDL.setPlayerID(id);
+                            ConnectToNoble.instance.setPlayerID(id);
+                            
+
                         }
                         
                     }

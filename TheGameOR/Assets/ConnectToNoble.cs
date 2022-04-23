@@ -12,28 +12,44 @@ public class ConnectToNoble : MonoBehaviour
     
     NobleNetworkManager networkManager;
 
-    public Text status;
 
-    public InputField nfcID;
 
-    public InputField nfcIDToJoin;
+    public Text playerIDText;
+
+    public InputField manualInputHost;
+
+    public InputField manualInputClient;
 
     public GameObject disconnectButton;
 
     public static ConnectToNoble instance;
 
+    public GameObject registerPanel;
+
+    public GameObject loadingPanel;
+
     public string ip, port;
+
+    public static string playerID;
 
     // Used to determine which GUI to display
     bool isHost, isClient;
 
     bool connected;
 
+    private void Awake()
+    {
+        instance = this;
+        playerID = PlayerPrefs.GetString("playerID", "");
+
+        
+    }
+
     public void Start()
     {
 
-        nfcID.text = DDL.playerID;
-        instance = this;
+        playerIDText.text = playerID;
+        
         // Cast from Unity's NetworkManager to a NobleNetworkManager.
         networkManager = (NobleNetworkManager)NetworkManager.singleton;
     }
@@ -53,7 +69,7 @@ public class ConnectToNoble : MonoBehaviour
     public void startClient()
     {
         //if no adress given, then get it 
-        StartCoroutine(IE_startClientFromDB(nfcIDToJoin.text));
+        StartCoroutine(IE_startClientFromDB(manualInputClient.text));
 
     }
 
@@ -99,10 +115,17 @@ public class ConnectToNoble : MonoBehaviour
 
     IEnumerator sendAdressToDB(string givenIp, string givenPort)
     {
-        
-        WWWForm form = new WWWForm();
+        string id;
+        if (manualInputHost.text.Equals("")) id = playerID;
+        else id = manualInputHost.text;
 
-        form.AddField("playerID", nfcID.text);
+
+        WWWForm form = new WWWForm();
+        
+
+
+
+        form.AddField("playerID", id);
         form.AddField("ip", givenIp);
         form.AddField("port", givenPort);
 
@@ -147,7 +170,12 @@ public class ConnectToNoble : MonoBehaviour
 
     private void Update()
     {
+        playerIDText.text = playerID;
+        if (playerID.Equals("")) registerPanel.SetActive(true);
+        else registerPanel.SetActive(false);
+
         disconnectButton.SetActive(true);
+        loadingPanel.SetActive(true);
         if (isHost)
         {
             //Host stuff
@@ -155,12 +183,12 @@ public class ConnectToNoble : MonoBehaviour
             {
                 ip = networkManager.HostEndPoint.Address.ToString();
                 port = networkManager.HostEndPoint.Port.ToString();
-                status.text = "Connected :D - ip: " + ip + ":" + port;
+                
                 
                 if (!connected)
                 {
                     connected = true;
-                    if (nfcID.text.Equals("")) nfcID.text = DDL.playerID;
+                    
                     StartCoroutine(sendAdressToDB(ip, port));
 
                 }
@@ -182,6 +210,7 @@ public class ConnectToNoble : MonoBehaviour
         else
         {
             disconnectButton.SetActive(false);
+            loadingPanel.SetActive(false);
         }
 
 
@@ -215,7 +244,25 @@ public class ConnectToNoble : MonoBehaviour
 
 
 
+    
+
+    
 
 
 
+
+    public void resetPlayerID()
+    {
+        print("eh");
+        PlayerPrefs.DeleteKey("playerID");
+        playerID = "";
+        playerIDText.text = "None";
+    }
+
+    public void setPlayerID(string pID)
+    {
+        playerID = pID;
+        PlayerPrefs.SetString("playerID", pID);
+        playerIDText.text = pID;
+    }
 }
