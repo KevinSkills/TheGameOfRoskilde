@@ -20,6 +20,8 @@ public class ConnectToNoble : MonoBehaviour
 
     public GameObject disconnectButton;
 
+    public static ConnectToNoble instance;
+
     public string ip, port;
 
     // Used to determine which GUI to display
@@ -29,9 +31,11 @@ public class ConnectToNoble : MonoBehaviour
 
     public void Start()
     {
+
+        nfcID.text = DDL.playerID;
+        instance = this;
         // Cast from Unity's NetworkManager to a NobleNetworkManager.
         networkManager = (NobleNetworkManager)NetworkManager.singleton;
-        print("hej");
     }
 
 
@@ -49,16 +53,24 @@ public class ConnectToNoble : MonoBehaviour
     public void startClient()
     {
         //if no adress given, then get it 
-        StartCoroutine(IE_startClientFromDB());
+        StartCoroutine(IE_startClientFromDB(nfcIDToJoin.text));
 
     }
 
-    IEnumerator IE_startClientFromDB()
+    public void startClient(string id)
+    {
+        
+        StartCoroutine(IE_startClientFromDB(id));
+
+    }
+
+
+    IEnumerator IE_startClientFromDB(string idToJoin)
     {
         //Get ip and port from database (do this with webrequest)
         WWWForm form = new WWWForm();
 
-        form.AddField("playerID", nfcIDToJoin.text);
+        form.AddField("playerID", idToJoin);
 
         UnityWebRequest uwr = UnityWebRequest.Post("https://thegameor.000webhostapp.com/get.php", form);
 
@@ -148,6 +160,7 @@ public class ConnectToNoble : MonoBehaviour
                 if (!connected)
                 {
                     connected = true;
+                    if (nfcID.text.Equals("")) nfcID.text = DDL.playerID;
                     StartCoroutine(sendAdressToDB(ip, port));
 
                 }

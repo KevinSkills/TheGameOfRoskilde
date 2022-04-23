@@ -12,13 +12,14 @@ using distriqt.plugins.nfc;
 
 namespace distriqt.example.nfc
 {
-    public class ExampleScript : MonoBehaviour
+    public class MyNFC : MonoBehaviour
     {
 
         public GameObject stateTextObject;
         public GameObject logTextObject;
 
         public GameObject settingsPanel;
+
 
 
         public Button button1;
@@ -83,7 +84,7 @@ namespace distriqt.example.nfc
         }
 
 
-        
+
         private void Instance_OnScanStopped(NFCEvent e)
         {
             Log("Scan stopped");
@@ -100,7 +101,19 @@ namespace distriqt.example.nfc
                     Log("NdefMessage:");
                     foreach (NdefRecord record in message.records)
                     {
-                        Log("  record.payload: " + record.payload);
+                        string id = record.payload;
+                        Log("  record.payload: " + id);
+
+                        if (!DDL.playerID.Equals("") && !DDL.playerID.Equals(id)) //if not empty, and it is not own id
+                        {
+                            
+                            ConnectToNoble.instance.startClient(id);
+                        }
+                        else
+                        {
+                            DDL.setPlayerID(id);
+                        }
+                        
                     }
                 }
             }
@@ -109,7 +122,7 @@ namespace distriqt.example.nfc
                 Log("Tag is null");
             }
 
-            
+
         }
 
 
@@ -120,7 +133,7 @@ namespace distriqt.example.nfc
         }
         private void button1_OnClick()
         {
-            Log("IsEnabled() = " + NFC.Instance.IsEnabled()); 
+            Log("IsEnabled() = " + NFC.Instance.IsEnabled());
         }
 
 
@@ -226,7 +239,7 @@ namespace distriqt.example.nfc
 
 
 
-        void UpdateState( string state )
+        void UpdateState(string state)
         {
             if (stateText != null)
             {
@@ -238,7 +251,7 @@ namespace distriqt.example.nfc
         {
             if (logText != null)
             {
-                logText.text = logText.text + "\n" +  message;
+                logText.text = logText.text + "\n" + message;
             }
             Debug.Log(message);
         }

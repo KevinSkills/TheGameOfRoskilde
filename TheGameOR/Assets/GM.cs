@@ -7,6 +7,8 @@ using Mirror;
 public class GM : NetworkBehaviour
 {
 
+   
+
     public GameObject redWin, blueWin;
 
     [SyncVar]
@@ -30,6 +32,8 @@ public class GM : NetworkBehaviour
     {
         instance = this;
     }
+
+    
 
     // Update is called once per frame
     void Update()
