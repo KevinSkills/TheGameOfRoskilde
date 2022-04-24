@@ -23,11 +23,11 @@ public class PCon : NetworkBehaviour {
 
     // Start is called before the first frame update
     void Start() {
-
+        pIndex = GameObject.FindGameObjectsWithTag("PlayerConnection").Length - 1;
         if (!isLocalPlayer) return;
         localPCon = this;
 
-        pIndex = GameObject.FindGameObjectsWithTag("PlayerConnection").Length - 1;
+        
         cmdSpawnMyPlayer(pIndex);
 
         if (pIndex == 0) cmdInitiateBullets();
@@ -44,6 +44,8 @@ public class PCon : NetworkBehaviour {
 
         myUnit.GetComponent<PMove>().connection = this;
         myUnit.GetComponent<Shooter>().connection = this;
+
+        
 
         if (index == 1) myUnit.GetComponent<PMove>().color = new Color32((byte)1,   (byte)206, (byte)255, (byte)255);
                    else myUnit.GetComponent<PMove>().color = new Color32((byte)254, (byte)49,  (byte)0,   (byte)255);

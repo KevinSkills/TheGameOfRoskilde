@@ -57,7 +57,7 @@ public class PMove : NetworkBehaviour
     }
 
     private void Start() {
-
+        gameObject.layer += connection.pIndex;
         field = GameObject.Find("Field").transform;
         timer = Time.time;
         GetComponent<SpriteRenderer>().color = color;
