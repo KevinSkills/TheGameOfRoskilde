@@ -108,6 +108,7 @@ namespace distriqt.example.nfc
                         {
                             
                             ConnectToNoble.instance.startClient(id);
+                            Log("Connecting to Client");
                         }
                         else
                         {

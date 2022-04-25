@@ -50,7 +50,6 @@ public class ConnectToNoble : MonoBehaviour
     public void Start()
     {
 
-        manualInputHost.text = "g";
         
         // Cast from Unity's NetworkManager to a NobleNetworkManager.
         networkManager = (NobleNetworkManager)NetworkManager.singleton;
